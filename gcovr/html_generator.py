@@ -56,6 +56,9 @@ class CssRenderer():
     uncovered_color = "LightPink"
     takenBranch_color = "Green"
     notTakenBranch_color = "Red"
+    takenDecision_color = "Green"
+    uncheckedDecision_color = "DarkOrange"
+    notTakenDecision_color = "Red"
 
     @staticmethod
     def render():
@@ -66,7 +69,10 @@ class CssRenderer():
             covered_color=CssRenderer.covered_color,
             uncovered_color=CssRenderer.uncovered_color,
             takenBranch_color=CssRenderer.takenBranch_color,
-            notTakenBranch_color=CssRenderer.notTakenBranch_color
+            notTakenBranch_color=CssRenderer.notTakenBranch_color,
+            takenDecision_color=CssRenderer.takenDecision_color,
+            uncheckedDecision_color=CssRenderer.uncheckedDecision_color,
+            notTakenDecision_color=CssRenderer.notTakenDecision_color
         )
 
 
@@ -100,6 +106,7 @@ class RootInfo:
         self.encoding = options.html_encoding
         self.directory = None
         self.branches = dict()
+        self.decisions = dict()
         self.lines = dict()
         self.files = []
 
@@ -122,6 +129,19 @@ class RootInfo:
         self.branches['coverage'] = '-' if coverage is None else coverage
         self.branches['class'] = self._coverage_to_class(coverage)
 
+    def calculate_decision_coverage(self, covdata):
+        decision_total = 0
+        decision_covered = 0
+        for key in covdata.keys():
+            (total, covered, _percent) = covdata[key].decision_coverage()
+            decision_total += total
+            decision_covered += covered
+        self.decisions['exec'] = decision_covered
+        self.decisions['total'] = decision_total
+        coverage = calculate_coverage(cdecision_covered, decision_total, nan_value=None)
+        self.decisions['coverage'] = '-' if coverage is None else coverage
+        self.decisions['class'] = self._coverage_to_class(coverage)
+
     def calculate_line_coverage(self, covdata):
         line_total = 0
         line_covered = 0
@@ -138,11 +158,14 @@ class RootInfo:
     def add_file(self, cdata, link_report, cdata_fname):
         lines_total, lines_exec, _ = cdata.line_coverage()
         branches_total, branches_exec, _ = cdata.branch_coverage()
+        decisions_total, decisions_exec, _ = cdata.decision_coverage()
 
         line_coverage = calculate_coverage(
             lines_exec, lines_total, nan_value=100.0)
         branch_coverage = calculate_coverage(
             branches_exec, branches_total, nan_value=None)
+        decision_coverage = calculate_coverage(
+            decisions_exec, decisions_total, nan_value=None)
 
         lines = {
             'total': lines_total,
@@ -156,6 +179,13 @@ class RootInfo:
             'exec': branches_exec,
             'coverage': '-' if branch_coverage is None else round(branch_coverage, 1),
             'class': self._coverage_to_class(branch_coverage),
+        }
+
+        decisions = {
+            'total': decisions_total,
+            'exec': decisions_exec,
+            'coverage': '-' if decision_coverage is None else round(decision_coverage, 1),
+            'class': self._coverage_to_class(decision_coverage),
         }
 
         display_filename = (
@@ -172,6 +202,7 @@ class RootInfo:
             link=link_report,
             lines=lines,
             branches=branches,
+            decisions=decisions
         ))
 
     def _coverage_to_class(self, coverage):
@@ -194,7 +225,17 @@ def print_html_report(covdata, output_file, options):
     data['css'] = CssRenderer.render()
 
     root_info.calculate_branch_coverage(covdata)
+    root_info.calculate_decision_coverage(covdata)
     root_info.calculate_line_coverage(covdata)
+
+    uncheckedDecisionsTotal = 0
+    for key in covdata.keys():
+        uncheckedDecisions = covdata[key].unchecked_decisions()
+        uncheckedDecisionsTotal += uncheckedDecisions
+    if uncheckedDecisionsTotal > 0:
+        data['WARNING_STRING'] = "Warning: " + str(uncheckedDecisionsTotal) + " unchecked decisions"
+    else:
+        data['WARNING_STRING'] = ""
 
     # Generate the coverage output (on a per-package basis)
     # source_dirs = set()
@@ -264,6 +305,12 @@ def print_html_report(covdata, output_file, options):
         branches['class'] = coverage_to_class(branches['coverage'], medium_threshold, high_threshold)
         branches['coverage'] = '-' if branches['coverage'] is None else branches['coverage']
 
+        decisions = dict()
+        data['decisions'] = decisions
+        decisions['total'], decisions['exec'], decisions['coverage'] = cdata.decisions_coverage()
+        decisions['class'] = coverage_to_class(decisions['coverage'], medium_threshold, high_threshold)
+        decisions['coverage'] = '-' if decisions['coverage'] is None else decisions['coverage']
+
         lines = dict()
         data['lines'] = lines
         lines['total'], lines['exec'], lines['coverage'] = cdata.line_coverage()
@@ -288,12 +335,14 @@ def print_html_report(covdata, output_file, options):
 
 def source_row(lineno, source, line_cov):
     linebranch = None
+    linedecision = None
     linecount = ''
     covclass = ''
     if line_cov:
         if line_cov.is_covered:
             covclass = 'coveredLine'
             linebranch = source_row_branch(line_cov.branches)
+            linedecision = source_row_decision(line_cov.decisions)
             linecount = line_cov.count
         elif line_cov.is_uncovered:
             covclass = 'uncoveredLine'
@@ -302,6 +351,7 @@ def source_row(lineno, source, line_cov):
         'source': source,
         'covclass': covclass,
         'linebranch': linebranch,
+        'linedecision': linedecision,
         'linecount': linecount,
     }
 
@@ -329,6 +379,35 @@ def source_row_branch(branches):
         'taken': taken,
         'total': total,
         'branches': items,
+    }
+
+
+def source_row_decision(decisions):
+    if not decisions:
+        return None
+
+    taken = 0
+    uncheckable = False
+    total = 0
+    items = []
+
+    for decision_id in sorted(decisions):
+        decision = decisions[decision_id]
+        if decision.is_covered:
+            taken += 1
+        total += 1
+        items.append({
+            'taken': decision.is_covered,
+            'uncheckable': decision.is_uncheckable,
+            'name': decision_id,
+            'count': decision.count,
+        })
+
+    return {
+        'taken': taken,
+        'uncheckable': uncheckable,
+        'total': total,
+        'decisions': items,
     }
 
 

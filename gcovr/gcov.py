@@ -78,9 +78,57 @@ def find_datafiles(search_path, logger, exclude_dirs):
 noncode_mapper = dict.fromkeys(ord(i) for i in '}{')
 
 
+def prep_decision_string(code):
+    # remove whitespace and eventual comments for the analysis, mitigate the chance of collision with variable names
+    return " " + (code.strip().split("//")[0].split("/*")[0])
+
+
 def is_non_code(code):
     code = code.strip().translate(noncode_mapper)
     return len(code) == 0 or code.startswith("//") or code == 'else'
+
+
+def is_a_branch_statement(code):
+    return any(s in prep_decision_string(code) for s in (" if(", " if (", " case ", " default:"))
+
+
+def is_a_oneline_branch(code):
+    return re.match(r"^[^;]+{.+;+.+}$", prep_decision_string(code)) is not None
+
+
+def is_a_ternary_expression(code):
+    return re.match(r"^[^;]+\?[^;]+:.+;$", prep_decision_string(code)) is not None
+
+
+def is_a_compact_branch(code):
+    return (is_a_branch_statement(code) and is_a_oneline_branch(code)) or is_a_ternary_expression(code)
+
+
+def is_a_if_block_start(code):
+    compare_string = prep_decision_string(code)
+    return "{" in compare_string
+
+
+def is_a_loop(code):
+    compare_string = prep_decision_string(code)
+    if any(s in compare_string for s in (" while(", "}while(", " for ", " for(")):
+        return True
+
+
+def get_branch_type(code):
+    compare_string = prep_decision_string(code)
+    if any(s in compare_string for s in (" if(", " if (")):
+        return "if"
+    elif any(s in compare_string for s in (" case ", " default:")):
+        return "switch"
+    return ""
+
+
+def get_exec_count(status):
+    if status.rstrip('*')[0] == '#':
+        return 0
+    else:
+        return int(status.rstrip('*'))
 
 
 #
@@ -224,6 +272,14 @@ class GcovParser(object):
         self.deferred_exceptions = []
         self.last_was_specialization_section_marker = False
 
+        # status variables for decision analysis
+        self.decision_analysis_active = False  # set to True, once we're in the process of analyzing a branch
+        self.last_decision_line = 0
+        self.last_decision_line_exec_count = 0
+        self.last_decision_type = "if"  # can be: "if" or "switch"
+        self.decision_analysis_open_brackets = 0
+        self.branch_found = False  # set to True, once a branch tag line has been found in a line following the tags
+
     def parse_all_lines(
         self, lines, exclude_unreachable_branches, exclude_throw_branches,
         ignore_parse_errors
@@ -242,6 +298,7 @@ class GcovParser(object):
     def parse_line(
         self, line, exclude_unreachable_branches, exclude_throw_branches
     ):
+
         # If this is a tag line, we stay on the same line number
         # and can return immediately after processing it.
         # A tag line cannot hold exclusion markers.
@@ -301,6 +358,49 @@ class GcovParser(object):
             if self.excluding or is_non_code(code):
                 self.coverage.line(self.lineno).noncode = True
             return True
+
+        # Temporarily save the execution count for decision analysis
+        exec_count = get_exec_count(status)
+
+        # Check if Decision Analysis is active
+        if not self.excluding and not is_non_code(code):
+            # analysis of a if-/else if-/else-branch is active
+            if self.decision_analysis_active:
+                if not self.branch_found:
+                    # The decision analysis was activated falsely (bad parsing). Prevent mistakes by disabling the decision analysis
+                    self.decision_analysis_active = False
+                    self.branch_found = False
+                    self.decision_analysis_open_brackets = 0
+
+                elif self.decision_analysis_open_brackets == 0:
+                    self.coverage.line(self.last_decision_line).decision(0).count = exec_count
+                    self.coverage.line(self.last_decision_line).decision(1).count = self.last_decision_line_exec_count - exec_count
+
+                    # disable the current decision analysis
+                    self.decision_analysis_active = False
+                    self.branch_found = False
+                    self.decision_analysis_open_brackets = 0
+
+                else:
+                    # count amount of open/closed brackets to track when we can start checking if the block is executed
+                    self.decision_analysis_open_brackets += prep_decision_string(code).count("(")
+                    self.decision_analysis_open_brackets -= prep_decision_string(code).count(")")
+
+            if not self.decision_analysis_active and (is_a_branch_statement(code) or is_a_ternary_expression(code) or is_a_loop(code)):
+                # If false, check the active line of code for a branch statement (if, else-if, switch)
+                if is_a_compact_branch(code) or is_a_loop(code):
+                    # If it's a compact decision, we can only use the fallback to analyze simple decisions via branch calls
+                    self.coverage.line(self.lineno).compact_decision = True
+                elif get_branch_type(code) == "switch":
+                    self.coverage.line(self.lineno).decision(0).count = exec_count
+                else:
+                    self.decision_analysis_active = True
+                    self.last_decision_line = self.lineno
+                    self.last_decision_line_exec_count = exec_count
+                    self.last_decision_type = get_branch_type(code)
+                    # count brakcets to make sure we're outside of the decision expression
+                    self.decision_analysis_open_brackets += ("(" + prep_decision_string(code).split(" if(")[-1].split(" if (")[-1]).count("(")
+                    self.decision_analysis_open_brackets -= ("(" + prep_decision_string(code).split(" if(")[-1].split(" if (")[-1]).count(")")
 
         # "#": uncovered
         # "=": uncovered, but only reachable through exceptions
@@ -385,6 +485,9 @@ class GcovParser(object):
                     line=self.lineno, fname=self.fname,
                     reason=exclude_reason)
                 return True
+
+            # mark the existence of a branch
+            self.branch_found = True
 
             # branch tags can look like:
             #   branch  1 never executed

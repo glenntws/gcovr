@@ -43,20 +43,27 @@
     <td>{{info.branches.total}}</td>
     <td class="{{info.branches.class}}">{{info.branches.coverage}}%</td>
   </tr>
+  <tr>
+    <th scope="row">Decisions:</th>
+    <td>{{info.decisions.exec}}</td>
+    <td>{{info.decisions.total}}</td>
+    <td class="{{info.decisions.class}}">{{info.decisions.coverage}}%</td>
+  </tr>
 </table>
 
 {% endblock %}
 
 {% block content %}
 <table class="file-list">
-  <col/>
-  <colgroup span="3"/>
-  <colgroup span="2"/>
+  <col />
+  <colgroup span="3" />
+  <colgroup span="2" />
 
   <tr>
     <th scope="col">File</th>
     <th scope="colgroup" colspan=3>Lines</th>
     <th scope="colgroup" colspan=2>Branches</th>
+    <th scope="colgroup" colspan=2>Decisions</th>
   </tr>
 
   {% for row in info.files %}
@@ -70,12 +77,15 @@
       {% endif %}
     </th>
     <td>
-      <meter min="0" max="100" low="{{COVERAGE_MED}}" high="{{COVERAGE_HIGH}}" optimum="99" value="{{row.lines.coverage}}" title="%">{{row.lines.coverage}}</meter>
+      <meter min="0" max="100" low="{{COVERAGE_MED}}" high="{{COVERAGE_HIGH}}" optimum="99"
+        value="{{row.lines.coverage}}" title="%">{{row.lines.coverage}}</meter>
     </td>
     <td class="CoverValue line-coverage {{row.lines.class}}">{{row.lines.coverage}}%</td>
     <td class="CoverValue line-coverage {{row.lines.class}}">{{row.lines.exec}} / {{row.lines.total}}</td>
     <td class="CoverValue branch-coverage {{row.branches.class}}">{{row.branches.coverage}}%</td>
     <td class="CoverValue branch-coverage {{row.branches.class}}">{{row.branches.exec}} / {{row.branches.total}}</td>
+    <td class="CoverValue decision-coverage {{row.decisions.class}}">{{row.decisions.coverage}}%</td>
+    <td class="CoverValue decision-coverage {{row.decisions.class}}">{{row.decisions.exec}} / {{row.decisions.total}}</td>
   </tr>
 
   {% endfor %}

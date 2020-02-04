@@ -35,6 +35,12 @@
     <td>{{branches.total}}</td>
     <td class="{{branches.class}}">{{branches.coverage}}%</td>
   </tr>
+  <tr>
+    <th scope="row">Decisions:</th>
+    <td>{{decisions.exec}}</td>
+    <td>{{decisions.total}}</td>
+    <td class="{{decisions.class}}">{{decisions.coverage}}%</td>
+  </tr>
 </table>
 {% endblock %}
 
@@ -44,6 +50,7 @@
     <tr>
       <td align="right" class="srcHeader">Line</td>
       <td align="right" class="srcHeader">Branch</td>
+      <td align="right" class="srcHeader">Decision</td>
       <td align="right" class="srcHeader">Exec</td>
       <td align="left" class="srcHeader src">Source</td>
     </tr>
@@ -55,16 +62,48 @@
       <td class="linebranch">
         {% if row.linebranch %}
         <details class="linebranchDetails">
-        <summary class="linebranchSummary">{{row.linebranch.taken}}/{{row.linebranch.total}}</summary>
-        <div class="linebranchContents">
-          {% for branch in row.linebranch.branches %}
-          {% if branch.taken %}
-          <div class="takenBranch">&check; Branch {{branch.name}} taken {{branch.count}} times.</div>
-          {% else %}
-          <div class="notTakenBranch">&cross; Branch {{branch.name}} not taken.</div>
-          {% endif%}
-          {% endfor %}
-        </div>
+          <summary class="linebranchSummary">{{row.linebranch.taken}}/{{row.linebranch.total}}</summary>
+          <div class="linebranchContents">
+            {% for branch in row.linebranch.branches %}
+            {% if branch.taken %}
+            <div class="takenBranch">&check; Branch {{branch.name}} taken {{branch.count}} times.</div>
+            {% else %}
+            <div class="notTakenBranch">&cross; Branch {{branch.name}} not taken.</div>
+            {% endif%}
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+      </td>
+      <td class="linedecision">
+        {% if row.linedecision %}
+        <details class="linedecisionDetails">
+          <summary class="linedecisionSummary">{{row.linedecision.taken}}/{{row.linedecision.total}}</summary>
+          <div class="linedecisionContents">
+            {% for decision in row.linedecision.decisions %}
+            {% if !decision.uncheckable %}
+            {% if decision.taken %}
+            {% if loop.index0 % 2 == 0 %}
+            <div class="takenDecision">&#10003; Decision 'true' taken {{decision.count}} times.</div>
+            {% else %}
+            <div class="takenDecision">&#10003; Decision 'false' taken {{decision.count}} times.</div>
+            {% endif %}
+            {% else %}
+            {% if loop.index0 % 2 == 0 %}
+            <div class="notTakenDecision">&#10007; Decision 'true' not taken.</div>
+            {% else %}
+            <div class="notTakenDecision">&#10007; Decision 'false' not taken.</div>
+            {% endif %}
+            {% endif %}
+            {% else %}
+            {% if loop.index0 % 2 == 0 %}
+            <div class="uncheckedDecision">&#10067; Decision 'true' couldn't be analyzed.</div>
+            {% else %}
+            <div class="uncheckedDecision">&#10067; Decision 'false' couldn't be analyzed.</div>
+            {% endif %}
+            {% endif%}
+            {% endfor %}
+          </div>
         </details>
         {% endif %}
       </td>
