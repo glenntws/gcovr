@@ -138,7 +138,7 @@ class RootInfo:
             decision_covered += covered
         self.decisions['exec'] = decision_covered
         self.decisions['total'] = decision_total
-        coverage = calculate_coverage(cdecision_covered, decision_total, nan_value=None)
+        coverage = calculate_coverage(decision_covered, decision_total, nan_value=None)
         self.decisions['coverage'] = '-' if coverage is None else coverage
         self.decisions['class'] = self._coverage_to_class(coverage)
 
@@ -307,7 +307,7 @@ def print_html_report(covdata, output_file, options):
 
         decisions = dict()
         data['decisions'] = decisions
-        decisions['total'], decisions['exec'], decisions['coverage'] = cdata.decisions_coverage()
+        decisions['total'], decisions['exec'], decisions['coverage'] = cdata.decision_coverage()
         decisions['class'] = coverage_to_class(decisions['coverage'], medium_threshold, high_threshold)
         decisions['coverage'] = '-' if decisions['coverage'] is None else decisions['coverage']
 
@@ -346,6 +346,7 @@ def source_row(lineno, source, line_cov):
             linecount = line_cov.count
         elif line_cov.is_uncovered:
             covclass = 'uncoveredLine'
+            linedecision = source_row_decision(line_cov.decisions)
     return {
         'lineno': lineno,
         'source': source,

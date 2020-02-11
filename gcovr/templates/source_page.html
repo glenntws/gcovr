@@ -81,7 +81,7 @@
           <summary class="linedecisionSummary">{{row.linedecision.taken}}/{{row.linedecision.total}}</summary>
           <div class="linedecisionContents">
             {% for decision in row.linedecision.decisions %}
-            {% if !decision.uncheckable %}
+            {% if decision.uncheckable == False %}
             {% if decision.taken %}
             {% if loop.index0 % 2 == 0 %}
             <div class="takenDecision">&#10003; Decision 'true' taken {{decision.count}} times.</div>
