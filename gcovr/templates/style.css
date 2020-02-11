@@ -91,6 +91,11 @@ span.coverage-high
     background-color: {{high_color}} !important;
 }
 
+table.legend td.warning_text
+{
+    color: orangered;
+}
+
 /* Coverage Table */
 
 .file-list td, .file-list th {
@@ -228,6 +233,7 @@ span.uncoveredLine
     background: white;
     border: solid gray 1px;
     box-shadow: 5px 5px 10px gray;
+    z-index: 1;
 }
 
 .takenBranch

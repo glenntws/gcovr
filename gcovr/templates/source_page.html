@@ -15,6 +15,15 @@
     <th scope="row">Date:</th>
     <td>{{info.date}}</td>
   </tr>
+
+  <tr>
+    <th scrope="row">Warnings:</th>
+    {% if decisions.unchecked > 0 %}
+    <td class="warning_text">{{decisions.unchecked}} unchecked decisions!</td>
+    {% else %}
+    <td>None</td>
+    {% endif %}
+  </tr>
 </table>
 <table class="coverage">
   <tr>
@@ -84,22 +93,22 @@
             {% if decision.uncheckable == False %}
             {% if decision.taken %}
             {% if loop.index0 % 2 == 0 %}
-            <div class="takenDecision">&#10003; Decision 'true' taken {{decision.count}} times.</div>
+            <div class="takenDecision">&check; Decision 'true' taken {{decision.count}} times.</div>
             {% else %}
-            <div class="takenDecision">&#10003; Decision 'false' taken {{decision.count}} times.</div>
+            <div class="takenDecision">&check; Decision 'false' taken {{decision.count}} times.</div>
             {% endif %}
             {% else %}
             {% if loop.index0 % 2 == 0 %}
-            <div class="notTakenDecision">&#10007; Decision 'true' not taken.</div>
+            <div class="notTakenDecision">&cross; Decision 'true' not taken.</div>
             {% else %}
-            <div class="notTakenDecision">&#10007; Decision 'false' not taken.</div>
+            <div class="notTakenDecision">&cross; Decision 'false' not taken.</div>
             {% endif %}
             {% endif %}
             {% else %}
             {% if loop.index0 % 2 == 0 %}
-            <div class="uncheckedDecision">&#10067; Decision 'true' couldn't be analyzed.</div>
+            <div class="uncheckedDecision">? Decision 'true' couldn't be analyzed.</div>
             {% else %}
-            <div class="uncheckedDecision">&#10067; Decision 'false' couldn't be analyzed.</div>
+            <div class="uncheckedDecision">? Decision 'false' couldn't be analyzed.</div>
             {% endif %}
             {% endif%}
             {% endfor %}

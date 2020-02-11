@@ -132,11 +132,14 @@ class RootInfo:
     def calculate_decision_coverage(self, covdata):
         decision_total = 0
         decision_covered = 0
+        decision_unchecked = 0
         for key in covdata.keys():
-            (total, covered, _percent) = covdata[key].decision_coverage()
+            (total, covered, unchecked, _percent) = covdata[key].decision_coverage()
             decision_total += total
             decision_covered += covered
+            decision_unchecked += unchecked
         self.decisions['exec'] = decision_covered
+        self.decisions['unchecked'] = decision_unchecked
         self.decisions['total'] = decision_total
         coverage = calculate_coverage(decision_covered, decision_total, nan_value=None)
         self.decisions['coverage'] = '-' if coverage is None else coverage
@@ -158,7 +161,7 @@ class RootInfo:
     def add_file(self, cdata, link_report, cdata_fname):
         lines_total, lines_exec, _ = cdata.line_coverage()
         branches_total, branches_exec, _ = cdata.branch_coverage()
-        decisions_total, decisions_exec, _ = cdata.decision_coverage()
+        decisions_total, decisions_exec, decisions_unchecked, _ = cdata.decision_coverage()
 
         line_coverage = calculate_coverage(
             lines_exec, lines_total, nan_value=100.0)
@@ -184,6 +187,7 @@ class RootInfo:
         decisions = {
             'total': decisions_total,
             'exec': decisions_exec,
+            'unchecked': decisions_unchecked,
             'coverage': '-' if decision_coverage is None else round(decision_coverage, 1),
             'class': self._coverage_to_class(decision_coverage),
         }
@@ -227,15 +231,6 @@ def print_html_report(covdata, output_file, options):
     root_info.calculate_branch_coverage(covdata)
     root_info.calculate_decision_coverage(covdata)
     root_info.calculate_line_coverage(covdata)
-
-    uncheckedDecisionsTotal = 0
-    for key in covdata.keys():
-        uncheckedDecisions = covdata[key].unchecked_decisions()
-        uncheckedDecisionsTotal += uncheckedDecisions
-    if uncheckedDecisionsTotal > 0:
-        data['WARNING_STRING'] = "Warning: " + str(uncheckedDecisionsTotal) + " unchecked decisions"
-    else:
-        data['WARNING_STRING'] = ""
 
     # Generate the coverage output (on a per-package basis)
     # source_dirs = set()
@@ -307,7 +302,7 @@ def print_html_report(covdata, output_file, options):
 
         decisions = dict()
         data['decisions'] = decisions
-        decisions['total'], decisions['exec'], decisions['coverage'] = cdata.decision_coverage()
+        decisions['total'], decisions['exec'], decisions['unchecked'], decisions['coverage'] = cdata.decision_coverage()
         decisions['class'] = coverage_to_class(decisions['coverage'], medium_threshold, high_threshold)
         decisions['coverage'] = '-' if decisions['coverage'] is None else decisions['coverage']
 

@@ -191,24 +191,18 @@ class LineCoverage(object):
         return total, cover, percent
 
     def decision_coverage(self):
-        # type: () -> Tuple[int, int, Optional[float]]
+        # type: () -> Tuple[int, int, int, Optional[float]]
         total = len(self.decisions)
         cover = 0
+        unchecked = 0
         for decision in self.decisions.values():
             if decision.is_covered:
                 cover += 1
-
-        percent = calculate_coverage(cover, total, nan_value=None)
-        return total, cover, percent
-
-    def unchecked_decisions(self):
-        # type: () -> int
-        unchecked = 0
-        for decision in self.decisions.values():
-            if decision.is_uncheckable:
+            elif decision.is_uncheckable:
                 unchecked += 1
 
-        return unchecked
+        percent = calculate_coverage(cover, total, nan_value=None)
+        return total, cover, unchecked, percent
 
 
 class FileCoverage(object):
@@ -294,21 +288,15 @@ class FileCoverage(object):
         # type: () -> Tuple[int, int, Optional[float]]
         total = 0
         cover = 0
-        for line in self.lines.values():
-            d_total, d_cover, _ = line.decision_coverage()
-            total += d_total
-            cover += d_cover
-
-        percent = calculate_coverage(cover, total, nan_value=None)
-        return total, cover, percent
-
-    def unchecked_decisions(self):
-        # type: () -> int
         unchecked = 0
         for line in self.lines.values():
-            unchecked += line.unchecked_decisions()
+            d_total, d_cover, d_unchecked, _ = line.decision_coverage()
+            total += d_total
+            cover += d_cover
+            unchecked += d_unchecked
 
-        return unchecked
+        percent = calculate_coverage(cover, total, nan_value=None)
+        return total, cover, unchecked, percent
 
 
 def _find_consecutive_ranges(items):
