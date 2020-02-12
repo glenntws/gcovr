@@ -78,6 +78,8 @@ class DecisionParser(object):
         self.decision_analysis_open_brackets = 0
 
     def parse_all_lines(self):
+        self.logger.verbose_msg("Starting the decision analysis")
+
         # load all the lines of the source file
         with io.open(self.fname, 'r', encoding=self.options.source_encoding,
                      errors='replace') as source_file:
@@ -92,7 +94,6 @@ class DecisionParser(object):
                 line_coverage = self.coverage.line(lineno)
                 # analysis if a if-/else if-/else-branch is active
                 if self.decision_analysis_active:
-                    print(code)
                     if self.decision_analysis_open_brackets == 0:
                         self.coverage.line(self.last_decision_line).decision(0).count = exec_count
                         self.coverage.line(self.last_decision_line).decision(1).count = self.last_decision_line_exec_count - exec_count
@@ -117,6 +118,7 @@ class DecisionParser(object):
                             else:
                                 line_coverage.decision(0).update_uncheckable(True)
                                 line_coverage.decision(1).update_uncheckable(True)
+                                self.logger.verbose_msg("Uncheckable decision at line {line}", line=lineno)
                         else:
                             # normal (non-compact) branch, analyze execution of following lines
                             self.decision_analysis_active = True
@@ -129,4 +131,5 @@ class DecisionParser(object):
                     elif get_branch_type(code) == "switch":
                         # just use execution counts of case lines
                         line_coverage.decision(0).count = line_coverage.count
-                        
+
+        self.logger.verbose_msg("Decision Analysis finished!")
