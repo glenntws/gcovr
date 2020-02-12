@@ -11,15 +11,16 @@ xml:
 
 html:
 	./testcase
-	$(GCOVR) -d --html-details -o coverage.html
+	$(GCOVR) --decisions --html-details -o coverage.html
 
 sonarqube:
 	# pass
 
 json:
-	# pass
+	./testcase
+	$(GCOVR) --decisions --json -o coverage.json
 
 clean:
 	rm -f testcase
 	rm -f *.gc*
-	rm -f coverage.txt coverage.xml coverage*.html sonarqube.xml
+	rm -f coverage.txt coverage.xml coverage*.html coverage.json sonarqube.xml

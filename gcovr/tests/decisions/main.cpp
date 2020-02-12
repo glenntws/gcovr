@@ -231,50 +231,22 @@ bool checkSwitch3(int a)
 
 bool checkCompactBranch1True(int a)
 {
-   if (a > 5)
-   {
-      return true;
-   }
-   else
-   {
-      return false;
-   }
+   if (a > 5) { return true; } else { return false; }
 }
 
 bool checkCompactBranch1False(int a)
 {
-   if (a > 5)
-   {
-      return true;
-   }
-   else
-   {
-      return false;
-   }
+   if (a > 5) { return true; } else { return false; }
 }
 
 bool checkCompactBranch2True(int a)
 {
-   if (a > 5 && a < 10)
-   {
-      return true;
-   }
-   else
-   {
-      return false;
-   }
+   if (a > 5 && a < 10) { return true; } else { return false; }
 }
 
 bool checkCompactBranch2False(int a)
 {
-   if (a > 5 && a < 10)
-   {
-      return true;
-   }
-   else
-   {
-      return false;
-   }
+   if (a > 5 && a < 10) { return true; } else { return false; }
 }
 
 bool checkTernary1True(int a)
