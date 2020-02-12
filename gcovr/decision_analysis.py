@@ -92,6 +92,7 @@ class DecisionParser(object):
                 line_coverage = self.coverage.line(lineno)
                 # analysis if a if-/else if-/else-branch is active
                 if self.decision_analysis_active:
+                    print(code)
                     if self.decision_analysis_open_brackets == 0:
                         self.coverage.line(self.last_decision_line).decision(0).count = exec_count
                         self.coverage.line(self.last_decision_line).decision(1).count = self.last_decision_line_exec_count - exec_count
@@ -107,8 +108,8 @@ class DecisionParser(object):
 
                 if not self.decision_analysis_active and (is_a_branch_statement(code) or is_a_loop(code)):
                     # If false, check the active line of code for a branch statement (if, else-if, switch)
-                    if is_a_compact_branch(code) or is_a_loop(code):
-                        if len(line_coverage.branches.items()) > 0:
+                    if len(line_coverage.branches.items()) > 0:
+                        if (is_a_compact_branch(code) or is_a_loop(code)):
                             # If it's a compact decision, we can only use the fallback to analyze simple decisions via branch calls
                             if len(line_coverage.branches.items()) == 2:
                                 line_coverage.decision(0).update_count(line_coverage.branch(0).count)
@@ -116,15 +117,16 @@ class DecisionParser(object):
                             else:
                                 line_coverage.decision(0).update_uncheckable(True)
                                 line_coverage.decision(1).update_uncheckable(True)
+                        else:
+                            # normal (non-compact) branch, analyze execution of following lines
+                            self.decision_analysis_active = True
+                            self.last_decision_line = lineno
+                            self.last_decision_line_exec_count = line_coverage.count
+                            self.last_decision_type = get_branch_type(code)
+                            # count brakcets to make sure we're outside of the decision expression
+                            self.decision_analysis_open_brackets += ("(" + prep_decision_string(code).split(" if(")[-1].split(" if (")[-1]).count("(")
+                            self.decision_analysis_open_brackets -= ("(" + prep_decision_string(code).split(" if(")[-1].split(" if (")[-1]).count(")")
                     elif get_branch_type(code) == "switch":
                         # just use execution counts of case lines
                         line_coverage.decision(0).count = line_coverage.count
-                    else:
-                        # normal (non-compact) branch, analyze execution of following lines
-                        self.decision_analysis_active = True
-                        self.last_decision_line = lineno
-                        self.last_decision_line_exec_count = line_coverage.count
-                        self.last_decision_type = get_branch_type(code)
-                        # count brakcets to make sure we're outside of the decision expression
-                        self.decision_analysis_open_brackets += ("(" + prep_decision_string(code).split(" if(")[-1].split(" if (")[-1]).count("(")
-                        self.decision_analysis_open_brackets -= ("(" + prep_decision_string(code).split(" if(")[-1].split(" if (")[-1]).count(")")
+                        
