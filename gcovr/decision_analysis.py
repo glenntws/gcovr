@@ -130,6 +130,9 @@ class DecisionParser(object):
                             self.decision_analysis_open_brackets -= ("(" + prep_decision_string(code).split(" if(")[-1].split(" if (")[-1]).count(")")
                     elif get_branch_type(code) == "switch":
                         # just use execution counts of case lines
-                        line_coverage.decision(0).count = line_coverage.count
+                        if "; break;" in code.replace(" ", "").replace(";", "; "):
+                            line_coverage.decision(0).count = line_coverage.count
+                        else:
+                            line_coverage.decision(0).count = self.coverage.line(lineno + 1).count
 
         self.logger.verbose_msg("Decision Analysis finished!")
