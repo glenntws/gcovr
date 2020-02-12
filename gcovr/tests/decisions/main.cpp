@@ -185,9 +185,7 @@ bool checkSwitch1(int a)
 {
    switch (a)
    {
-   case 5:
-      return true;
-      break;
+   case 5: return true; break;
    case 10:
       return true;
       break;
