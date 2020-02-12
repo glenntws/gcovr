@@ -109,7 +109,7 @@ class LineCoverage(object):
             Whether any coverage info on this line should be ignored.
     """
 
-    __slots__ = 'lineno', 'count', 'noncode', 'branches', 'decisions', 'compact_decision'
+    __slots__ = 'lineno', 'count', 'noncode', 'branches', 'decisions'
 
     def __init__(self, lineno, count=0, noncode=False):
         # type: (int, int, bool) -> None
@@ -121,7 +121,6 @@ class LineCoverage(object):
         self.noncode = noncode
         self.branches = {}  # type: Dict[int, BranchCoverage]
         self.decisions = {}  # type: Dict[int, DecisionCoverage]
-        self.compact_decision = False  # when set to true, the decision generator falls back to branch analysis (only with simple decisions)
 
     @property
     def is_covered(self):

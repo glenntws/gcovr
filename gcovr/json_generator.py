@@ -92,6 +92,7 @@ def _json_from_lines(lines):
 def _json_from_line(line):
     json_line = {}
     json_line['branches'] = _json_from_branches(line.branches)
+    json_line['decision'] = _json_from_decision(line.decisions)
     json_line['count'] = line.count
     json_line['line_number'] = line.lineno
     json_line['gcovr/noncode'] = line.noncode
@@ -111,6 +112,21 @@ def _json_from_branch(branch):
     return json_branch
 
 
+def _json_from_decision(decisions):
+    json_decision = {}
+    if len(sorted(decisions)) == 2:
+        json_decision['count_true'] = decisions[0].count
+        json_decision['count_false'] = decisions[1].count
+        json_decision['uncheckable'] = decisions[0].uncheckable
+        json_decision['is_switch'] = False
+    elif len(sorted(decisions)) == 1:
+        json_decision['count_true'] = decisions[0].count
+        json_decision['count_false'] = 0
+        json_decision['uncheckable'] = False
+        json_decision['is_switch'] = True
+    return json_decision
+
+
 def _lines_from_json(file, json_lines):
     [_line_from_json(file.line(json_line['line_number']), json_line) for json_line in json_lines]
 
@@ -119,6 +135,7 @@ def _line_from_json(line, json_line):
     line.noncode = json_line['gcovr/noncode']
     line.count = json_line['count']
     _branches_from_json(line, json_line['branches'])
+    _decision_from_json(line, json_line['decision'])
 
 
 def _branches_from_json(line, json_branches):
@@ -129,3 +146,11 @@ def _branch_from_json(branch, json_branch):
     branch.fallthrough = json_branch['fallthrough']
     branch.throw = json_branch['throw']
     branch.count = json_branch['count']
+
+
+def _decision_from_json(decisions, json_branch):
+    decisions[0].count = json_branch['count_true']
+    decisions[0].uncheckable = json_branch['uncheckable']
+    if not json_branch['is_switch']:
+        decisions[1].count = json_branch['count_false']
+        decisions[1].uncheckable = json_branch['uncheckable']

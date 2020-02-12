@@ -31,7 +31,7 @@ def is_a_oneline_branch(code):
 
 
 def is_a_compact_branch(code):
-    return (is_a_branch_statement(code) and is_a_oneline_branch(code)) or is_a_ternary_expression(code)
+    return (is_a_branch_statement(code) and is_a_oneline_branch(code))
 
 
 def is_a_loop(code):
