@@ -108,7 +108,7 @@ def create_argument_parser():
 
 
 COPYRIGHT = (
-    "Copyright 2013-2018 the gcovr authors\n"
+    "Copyright 2013-2020 the gcovr authors\n"
     "Copyright 2013 Sandia Corporation\n"
     "Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,\n"
     "the U.S. Government retains certain rights in this software."

@@ -6,7 +6,7 @@ Generator of the coverage summary.
 
 # This file is part of gcovr <http://gcovr.com/>.
 #
-# Copyright 2013-2018 the gcovr authors
+# Copyright 2013-2020 the gcovr authors
 # Copyright 2013 Sandia Corporation
 # This software is distributed under the BSD license.
 

@@ -142,7 +142,7 @@ License
 
 .. begin license
 
-Copyright 2013-2018 the gcovr authors
+Copyright 2013-2020 the gcovr authors
 
 Copyright 2013 Sandia Corporation.
 Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
