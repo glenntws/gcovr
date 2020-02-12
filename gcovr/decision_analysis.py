@@ -30,17 +30,8 @@ def is_a_oneline_branch(code):
     return re.match(r"^[^;]+{.+;+.+}$", prep_decision_string(code)) is not None
 
 
-def is_a_ternary_expression(code):
-    return re.match(r"^[^;]+\?[^;]+:.+;$", prep_decision_string(code)) is not None
-
-
 def is_a_compact_branch(code):
     return (is_a_branch_statement(code) and is_a_oneline_branch(code)) or is_a_ternary_expression(code)
-
-
-def is_a_if_block_start(code):
-    compare_string = prep_decision_string(code)
-    return "{" in compare_string
 
 
 def is_a_loop(code):
