@@ -510,10 +510,10 @@ GCOVR_CONFIG_OPTIONS = [
         action="store_true",
     ),
     GcovrConfigOption(
-        "show_decision", ["--show-decisions"], config='txt-decision',
+        "show_decision", ["--decisions"], config='txt-decision',
         group="output_options",
         help="Report the decision coverage. "
-             "For text, HTML and JSON report.",
+             "For HTML and JSON report.",
         action="store_true",
     ),
     GcovrConfigOption(
