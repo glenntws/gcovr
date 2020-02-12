@@ -1,5 +1,6 @@
 all:
 	gcc -fprofile-arcs -ftest-coverage main.cpp -o testcase
+	./testcase
 
 run: txt xml html sonarqube json
 
@@ -10,14 +11,12 @@ xml:
 	# pass
 
 html:
-	./testcase
 	$(GCOVR) --decisions --html-details -o coverage.html
 
 sonarqube:
 	# pass
 
 json:
-	./testcase
 	$(GCOVR) --decisions --json -o coverage.json
 
 clean:
