@@ -18,7 +18,7 @@
 
   <tr>
     <th scrope="row">Warnings:</th>
-    {% if decisions.unchecked > 0 %}
+    {% if options.show_decision and decisions.unchecked > 0 %}
     <td class="warning_text">{{decisions.unchecked}} unchecked decisions!</td>
     {% else %}
     <td>None</td>
@@ -44,12 +44,14 @@
     <td>{{branches.total}}</td>
     <td class="{{branches.class}}">{{branches.coverage}}%</td>
   </tr>
+  {% if options.show_decision %}
   <tr>
     <th scope="row">Decisions:</th>
     <td>{{decisions.exec}}</td>
     <td>{{decisions.total}}</td>
     <td class="{{decisions.class}}">{{decisions.coverage}}%</td>
   </tr>
+  {% endif %}
 </table>
 {% endblock %}
 
@@ -59,7 +61,9 @@
     <tr>
       <td align="right" class="srcHeader">Line</td>
       <td align="right" class="srcHeader">Branch</td>
+      {% if options.show_decision %}
       <td align="right" class="srcHeader">Decision</td>
+      {% endif %}
       <td align="right" class="srcHeader">Exec</td>
       <td align="left" class="srcHeader src">Source</td>
     </tr>
@@ -84,6 +88,7 @@
         </details>
         {% endif %}
       </td>
+      {% if options.show_decision %}
       <td class="linedecision">
         {% if row.linedecision %}
         <details class="linedecisionDetails">
@@ -116,6 +121,7 @@
         </details>
         {% endif %}
       </td>
+      {% endif %}
       <td class="linecount {{row.covclass}}">{{row.linecount}}</td>
       <td class="src {{row.covclass}}">{{row.source}}</td>
     </tr>

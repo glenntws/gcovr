@@ -84,6 +84,7 @@ class DecisionCoverage(object):
         # type: (DecisionCoverage) -> None
         r"""Merge DecisionCoverage information"""
         self.count += other.count
+        self.uncheckable = self.uncheckable or other.uncheckable
 
     def update_count(self, count):
         # type: (int) -> None
@@ -160,24 +161,11 @@ class LineCoverage(object):
         assert self.lineno == other.lineno
         self.count += other.count
         self.noncode &= other.noncode
-        self.compact_decision = other.compact_decision
         for branch_id, branch_cov in other.branches.items():
             self.branch(branch_id).update(branch_cov)
-            # update decision table (only done if marked and only two branches exist, so only for if-else-branches)
-            if self.compact_decision:
-                if len(other.branches.items()) == 2:
-                    self.decision(branch_id).update_count(branch_cov.count)
-                elif len(self.decisions.items()) == 0:
-                    self.decision(0).update_count(0)
-                    self.decision(1).update_count(0)
-                else:
-                    self.decision(0).update_uncheckable(True)
-                    self.decision(1).update_uncheckable(True)
 
-        # update decision table (try with favored method)
         for decision_id, decision_cov in other.decisions.items():
-            if not self.compact_decision:
-                self.decision(decision_id).update(decision_cov)
+            self.decision(decision_id).update(decision_cov)
 
     def branch_coverage(self):
         # type: () -> Tuple[int, int, Optional[float]]

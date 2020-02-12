@@ -6,7 +6,7 @@
 # passed into gcovr.
 #
 #
-# Copyright 2013-2019 the gcovr authors
+# Copyright 2013-2020 the gcovr authors
 # Copyright 2013 Sandia Corporation
 # This software is distributed under the BSD license.
 from argparse import ArgumentTypeError, SUPPRESS
@@ -507,6 +507,13 @@ GCOVR_CONFIG_OPTIONS = [
         group="output_options",
         help="Report the branch coverage instead of the line coverage. "
              "For text report only.",
+        action="store_true",
+    ),
+    GcovrConfigOption(
+        "show_decision", ["--show-decisions"], config='txt-decision',
+        group="output_options",
+        help="Report the decision coverage. "
+             "For text, HTML and JSON report.",
         action="store_true",
     ),
     GcovrConfigOption(

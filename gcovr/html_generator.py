@@ -222,6 +222,7 @@ def print_html_report(covdata, output_file, options):
     data = {}
     root_info = RootInfo(options)
     data['info'] = root_info
+    data['options'] = options
 
     data['COVERAGE_MED'] = medium_threshold
     data['COVERAGE_HIGH'] = high_threshold
@@ -295,7 +296,6 @@ def print_html_report(covdata, output_file, options):
 
         branches = dict()
         data['branches'] = branches
-
         branches['total'], branches['exec'], branches['coverage'] = cdata.branch_coverage()
         branches['class'] = coverage_to_class(branches['coverage'], medium_threshold, high_threshold)
         branches['coverage'] = '-' if branches['coverage'] is None else branches['coverage']
@@ -311,6 +311,7 @@ def print_html_report(covdata, output_file, options):
         lines['total'], lines['exec'], lines['coverage'] = cdata.line_coverage()
         lines['class'] = coverage_to_class(lines['coverage'], medium_threshold, high_threshold)
 
+        data['options'] = options
         data['source_lines'] = []
         currdir = os.getcwd()
         os.chdir(options.root_dir)
